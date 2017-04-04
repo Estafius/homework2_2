@@ -1,15 +1,11 @@
 import json
 import collections
+import chardet
 
-
-d = collections.defaultdict(int)
-
-list_file = ['newsafr.json','newscy.json','newsfr.json','newsit.json']
-
-for file in list_file:
- with open(file, encoding='utf-8') as json_content:
+def get_popular_words(file,encoding):
+ d = collections.defaultdict(int)
+ with open(file, encoding= encoding) as json_content:
   data_file = json.load(json_content)
-  dictlist_file = []
   if file != 'newsit.json':
    for key, value in data_file.items():
     for c in value['channel']['item']:
@@ -19,12 +15,22 @@ for file in list_file:
        else:
         continue
   else:
-    for key, value in data_file.items():
-     for key_under, name in value['channel'].items():
-      for i in name:
-       if len(i) > 6:
+    for value in data_file['rss']['channel']['item']:
+     for i in value['description'].split(" "):
+      if len(i) > 6:
         d[i] += 1
-       else:
+      else:
          continue
  top_10 = sorted(d.items(), key=lambda x: x[1], reverse=True)[0:10]
- print('\n10 самых часто употребляемых слов из файла ',file,': ', top_10,'\n')
+ return top_10
+
+
+
+def main():
+ list_file = ['newsafr.json', 'newscy.json', 'newsfr.json', 'newsit.json']
+ for file in list_file:
+  rawdata = open(file, 'rb').read()
+  result = chardet.detect(rawdata)
+  top_10= get_popular_words(file,result['encoding'])
+  print('\n10 самых часто употребляемых слов из файла ',file,': ', top_10,'\n')
+main()
